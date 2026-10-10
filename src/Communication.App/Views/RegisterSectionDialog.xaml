@@ -1,0 +1,65 @@
+﻿<Window
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:ui="clr-namespace:Communication.App.Presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  x:Class="Communication.App.Views.RegisterSectionDialog"
+  Title="{ui:Loc Key=UiRegisterSection}"
+  Width="440"
+  SizeToContent="Height"
+  ResizeMode="NoResize"
+  WindowStyle="None"
+  WindowStartupLocation="CenterOwner"
+  ShowInTaskbar="False"
+  Style="{StaticResource {x:Type Window}}">
+  <Border
+    Background="{DynamicResource Surface}"
+    BorderBrush="{DynamicResource Outline}"
+    BorderThickness="1"
+    CornerRadius="6"
+    Padding="22">
+    <StackPanel>
+      <TextBlock
+        x:Name="DialogHeading"
+        Text="{ui:Loc Key=UiNewRegisterTab}"
+        FontSize="20"
+        FontWeight="SemiBold"
+        Margin="0,0,0,12"/>
+      <TextBlock Text="{ui:Loc Key=UiTabName}" Style="{StaticResource MutedLabel}"/>
+      <TextBox x:Name="NameField" MaxLength="64"/>
+      <TextBlock Text="{ui:Loc Key=UiRegisterType}" Style="{StaticResource MutedLabel}"/>
+      <ComboBox x:Name="TypeField">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{ui:Loc Source={Binding}}"/>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="16"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="{ui:Loc Key=UiStartAddressZeroBasedOffset}" Style="{StaticResource MutedLabel}"/>
+          <TextBox x:Name="StartField"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Text="{ui:Loc Key=UiCount}" Style="{StaticResource MutedLabel}"/>
+          <TextBox x:Name="CountField"/>
+        </StackPanel>
+      </Grid>
+      <TextBlock
+        Text="{ui:Loc Key=UiAddresses065535UpTo125Registers}"
+        TextWrapping="Wrap"
+        Foreground="{DynamicResource Muted}"
+        FontSize="11"
+        Margin="0,14,0,0"/>
+      <TextBlock x:Name="ErrorText" Foreground="{DynamicResource Error}" TextWrapping="Wrap" Margin="0,12,0,0"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+        <Button Content="{ui:Loc Key=UiCancel}" IsCancel="True" Margin="0,0,8,0"/>
+        <Button Content="{ui:Loc Key=UiOK}" IsDefault="True" Click="ConfirmClick" Style="{StaticResource Primary}"/>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

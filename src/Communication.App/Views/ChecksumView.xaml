@@ -1,0 +1,75 @@
+﻿<UserControl
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:ui="clr-namespace:Communication.App.Presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  x:Class="Communication.App.Views.ChecksumView">
+  <Grid Margin="16,12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock
+      Text="{ui:Loc Key=UiEnterRawDataToCompareCommonChecksum}"
+      Foreground="{DynamicResource Muted}"
+      TextWrapping="Wrap"
+      Margin="0,0,0,10"/>
+    <Border
+      Grid.Row="1"
+      Background="{DynamicResource Surface}"
+      BorderBrush="{DynamicResource Outline}"
+      BorderThickness="1"
+      CornerRadius="6"
+      Padding="12"
+      Margin="0,0,0,10">
+      <StackPanel>
+        <DockPanel Margin="0,0,0,10">
+          <CheckBox
+            DockPanel.Dock="Right"
+            Content="{ui:Loc Key=UiHEXInput}"
+            IsChecked="{Binding HexInput}"
+            HorizontalAlignment="Right"/>
+          <TextBlock Text="{ui:Loc Key=UiInputData}" FontWeight="SemiBold"/>
+        </DockPanel>
+        <TextBox
+          Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}"
+          AcceptsReturn="True"
+          TextWrapping="Wrap"
+          Height="80"
+          VerticalScrollBarVisibility="Auto"
+          VerticalContentAlignment="Top"
+          FontFamily="Consolas"/>
+        <TextBlock Text="{ui:Loc Source={Binding Status}}" Foreground="{DynamicResource Muted}" Margin="0,10,0,0"/>
+      </StackPanel>
+    </Border>
+    <DataGrid Grid.Row="2" ItemsSource="{Binding Results}" SelectedItem="{Binding Selected}" RowHeight="32">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="{ui:Loc Key=UiAlgorithm}" Binding="{Binding Algorithm}" Width="*" MinWidth="180">
+          <DataGridTextColumn.CellStyle>
+            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+              <Setter Property="ToolTip" Value="{ui:Loc Source={Binding Description}}"/>
+            </Style>
+          </DataGridTextColumn.CellStyle>
+        </DataGridTextColumn>
+        <DataGridTextColumn Header="{ui:Loc Key=UiChecksumHEX}" Binding="{Binding Hex}" Width="95"/>
+        <DataGridTextColumn Header="{ui:Loc Key=UiAppendedByteOrder}" Binding="{Binding WireBytes}" Width="130"/>
+      </DataGrid.Columns>
+    </DataGrid>
+    <Border Grid.Row="3" Background="{DynamicResource Surface}" Padding="12" CornerRadius="6" Margin="0,10,0,0">
+      <StackPanel>
+        <TextBlock
+          Text="{ui:Loc Key=UiCompleteHEXOriginalDataSelectedChecksum}"
+          Foreground="{DynamicResource Muted}"
+          Margin="0,0,0,8"/>
+        <TextBox
+          Text="{Binding FramedHex, Mode=OneWay}"
+          IsReadOnly="True"
+          TextWrapping="Wrap"
+          MaxHeight="72"
+          VerticalScrollBarVisibility="Auto"
+          FontFamily="Consolas"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

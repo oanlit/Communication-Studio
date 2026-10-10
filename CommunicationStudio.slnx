@@ -1,0 +1,10 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Communication.Core/Communication.Core.csproj"/>
+    <Project Path="src/Communication.Transports/Communication.Transports.csproj"/>
+    <Project Path="src/Communication.App/Communication.App.csproj"/>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Communication.Tests/Communication.Tests.csproj"/>
+  </Folder>
+</Solution>

@@ -1,0 +1,28 @@
+﻿<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <SolidColorBrush x:Key="Background" Color="#10151D"/>
+  <SolidColorBrush x:Key="Surface" Color="#171E29"/>
+  <SolidColorBrush x:Key="Raised" Color="#202A38"/>
+  <SolidColorBrush x:Key="Outline" Color="#2B3849"/>
+  <SolidColorBrush x:Key="Text" Color="#E3EAF3"/>
+  <SolidColorBrush x:Key="Muted" Color="#94A5BB"/>
+  <SolidColorBrush x:Key="Accent" Color="#59DBC1"/>
+  <SolidColorBrush x:Key="AccentText" Color="#0C2A25"/>
+  <SolidColorBrush x:Key="InputSurface" Color="#101722"/>
+  <SolidColorBrush x:Key="AlternateRow" Color="#151D28"/>
+  <SolidColorBrush x:Key="StatusSurface" Color="#192C32"/>
+  <SolidColorBrush x:Key="ActiveSurface" Color="#213D43"/>
+  <SolidColorBrush x:Key="SelectedSurface" Color="#274154"/>
+  <SolidColorBrush x:Key="HoverSurface" Color="#304458"/>
+  <SolidColorBrush x:Key="Selection" Color="#326D77"/>
+  <SolidColorBrush x:Key="ActiveOutline" Color="#37635F"/>
+  <SolidColorBrush x:Key="ScrollHandle" Color="#46566C"/>
+  <SolidColorBrush x:Key="ControlOutline" Color="#587087"/>
+  <SolidColorBrush x:Key="ScrollHover" Color="#71869F"/>
+  <SolidColorBrush x:Key="CloseHover" Color="#C94B54"/>
+  <SolidColorBrush x:Key="TxColor" Color="#E9BC7B"/>
+  <SolidColorBrush x:Key="Error" Color="#F28D82"/>
+  <SolidColorBrush x:Key="Warning" Color="#F3CE86"/>
+  <SolidColorBrush x:Key="Fault" Color="#FFA696"/>
+</ResourceDictionary>

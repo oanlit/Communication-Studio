@@ -1,0 +1,985 @@
+﻿<UserControl
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:ui="clr-namespace:Communication.App.Presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  x:Name="RootView"
+  x:Class="Communication.App.Views.ConnectionsView">
+  <UserControl.Resources>
+    <Style x:Key="EndpointSectionHeading" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style x:Key="RemoveEndpointButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+      <Setter Property="Visibility" Value="Hidden"/>
+      <Style.Triggers>
+        <DataTrigger
+          Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
+          Value="True">
+          <Setter Property="Visibility" Value="Visible"/>
+        </DataTrigger>
+        <MultiTrigger>
+          <MultiTrigger.Conditions>
+            <Condition Property="IsMouseOver" Value="True"/>
+            <Condition Property="IsEnabled" Value="True"/>
+          </MultiTrigger.Conditions>
+          <Setter Property="Foreground" Value="{DynamicResource Error}"/>
+        </MultiTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="UpwardComboBox" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+      <Setter Property="ui:DropDownPlacement.Value" Value="Top"/>
+    </Style>
+    <Style
+      x:Key="TrafficFilterHeader"
+      TargetType="DataGridColumnHeader"
+      BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+      <Setter Property="ToolTip" Value="{ui:Loc Key=LogFilterHint}"/>
+      <EventSetter Event="PreviewMouseRightButtonUp" Handler="TrafficFilterHeaderRightClick" HandledEventsToo="True"/>
+    </Style>
+    <Style
+      x:Key="TrafficDirectionHeader"
+      TargetType="DataGridColumnHeader"
+      BasedOn="{StaticResource TrafficFilterHeader}">
+      <Setter Property="Tag" Value="Direction"/>
+      <Style.Triggers>
+        <DataTrigger
+          Binding="{Binding DataContext.TrafficDirectionFilter.IsFiltered, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+          Value="True">
+          <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style
+      x:Key="TrafficConnectionHeader"
+      TargetType="DataGridColumnHeader"
+      BasedOn="{StaticResource TrafficFilterHeader}">
+      <Setter Property="Tag" Value="Connection"/>
+      <Style.Triggers>
+        <DataTrigger
+          Binding="{Binding DataContext.TrafficConnectionFilter.IsFiltered, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+          Value="True">
+          <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style
+      x:Key="TrafficEndpointHeader"
+      TargetType="DataGridColumnHeader"
+      BasedOn="{StaticResource TrafficFilterHeader}">
+      <Setter Property="Tag" Value="Endpoint"/>
+      <Style.Triggers>
+        <DataTrigger
+          Binding="{Binding DataContext.TrafficEndpointFilter.IsFiltered, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+          Value="True">
+          <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="TrafficDataHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource TrafficFilterHeader}">
+      <Setter Property="Tag" Value="Data"/>
+      <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+      <Style.Triggers>
+        <DataTrigger
+          Binding="{Binding DataContext.Filter, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+          Value="">
+          <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="SendEncodingItem" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+      <EventSetter Event="Click" Handler="SendFormatClick"/>
+      <Style.Triggers>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding SendHex}" Value="False"/>
+            <Condition Binding="{Binding SendEncoding}" Value="UTF-8"/>
+            <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="UTF-8"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="IsChecked" Value="True"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding SendHex}" Value="False"/>
+            <Condition Binding="{Binding SendEncoding}" Value="ASCII"/>
+            <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="ASCII"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="IsChecked" Value="True"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding SendHex}" Value="False"/>
+            <Condition Binding="{Binding SendEncoding}" Value="UTF-16 LE"/>
+            <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="UTF-16 LE"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="IsChecked" Value="True"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding SendHex}" Value="False"/>
+            <Condition Binding="{Binding SendEncoding}" Value="UTF-16 BE"/>
+            <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="UTF-16 BE"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="IsChecked" Value="True"/>
+        </MultiDataTrigger>
+        <MultiDataTrigger>
+          <MultiDataTrigger.Conditions>
+            <Condition Binding="{Binding SendHex}" Value="False"/>
+            <Condition Binding="{Binding SendEncoding}" Value="GB18030"/>
+            <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="GB18030"/>
+          </MultiDataTrigger.Conditions>
+          <Setter Property="IsChecked" Value="True"/>
+        </MultiDataTrigger>
+      </Style.Triggers>
+    </Style>
+    <DataTemplate x:Key="TrafficTimeHeader">
+      <StackPanel Orientation="Horizontal" ToolTip="{ui:Loc Key=UiClickToToggleAscendingDescendingTimeOrder}">
+        <TextBlock Text="{ui:Loc Key=UiTime}" VerticalAlignment="Center"/>
+        <StackPanel Margin="7,0,0,0" VerticalAlignment="Center">
+          <Path Data="M 0 4 L 4 0 L 8 4 Z" Width="8" Height="4" Margin="0,0,0,3">
+            <Path.Style>
+              <Style TargetType="Path">
+                <Setter Property="Fill" Value="{DynamicResource Muted}"/>
+                <Setter Property="Opacity" Value="0.35"/>
+                <Style.Triggers>
+                  <DataTrigger
+                    Binding="{Binding DataContext.TimeAscending, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                    Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource Accent}"/>
+                    <Setter Property="Opacity" Value="1"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Path.Style>
+          </Path>
+          <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="8" Height="4">
+            <Path.Style>
+              <Style TargetType="Path">
+                <Setter Property="Fill" Value="{DynamicResource Muted}"/>
+                <Setter Property="Opacity" Value="0.35"/>
+                <Style.Triggers>
+                  <DataTrigger
+                    Binding="{Binding DataContext.TimeAscending, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                    Value="False">
+                    <Setter Property="Fill" Value="{DynamicResource Accent}"/>
+                    <Setter Property="Opacity" Value="1"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Path.Style>
+          </Path>
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="245" MinWidth="215"/>
+      <ColumnDefinition Width="4"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+    <Border Background="{DynamicResource Surface}" Padding="14,18,14,12">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <DockPanel Margin="2,0,2,16">
+          <TextBlock
+            Text="{ui:Loc Key=EndpointsHeading}"
+            Foreground="{DynamicResource Muted}"
+            FontSize="11"
+            FontWeight="SemiBold"/>
+          <Button
+            Content="＋"
+            DockPanel.Dock="Right"
+            HorizontalAlignment="Right"
+            Command="{Binding AddCommand}"
+            Padding="8,2"
+            ToolTip="{ui:Loc Key=UiNewEndpointCtrlN}"/>
+        </DockPanel>
+        <ListBox
+          x:Name="EndpointList"
+          Grid.Row="1"
+          ItemsSource="{Binding Connections}"
+          SelectedItem="{Binding Selected}">
+          <ListBox.ItemContainerStyle>
+            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+              <Setter
+                Property="Tag"
+                Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+              <EventSetter Event="ContextMenuOpening" Handler="EndpointContextMenuOpening"/>
+              <Setter Property="ContextMenu">
+                <Setter.Value>
+                  <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="{ui:Loc Key=UiOpen}" Command="{Binding ConnectCommand}"/>
+                    <MenuItem Header="{ui:Loc Key=UiClose}" Command="{Binding DisconnectCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="{ui:Loc Key=UiRemoveEndpoint}" Command="{Binding RemoveCommand}"/>
+                  </ContextMenu>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </ListBox.ItemContainerStyle>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Grid Margin="12">
+                <Grid.RowDefinitions>
+                  <RowDefinition/>
+                  <RowDefinition/>
+                  <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock
+                  Text="{Binding DisplayName}"
+                  ToolTip="{Binding Endpoint}"
+                  FontWeight="SemiBold"
+                  TextTrimming="CharacterEllipsis"
+                  Margin="0,0,26,0"/>
+                <Button
+                  Style="{StaticResource RemoveEndpointButton}"
+                  Content="×"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Top"
+                  Width="22"
+                  Height="22"
+                  MinHeight="0"
+                  Padding="0"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Margin="0,-3,-3,0"
+                  Click="RemoveEndpointClick"
+                  IsEnabled="{Binding CanRemove}"
+                  ToolTip="{ui:Loc Key=UiRemoveEndpoint}"/>
+                <TextBlock
+                  Grid.Row="1"
+                  Text="{Binding Endpoint}"
+                  FontFamily="Consolas"
+                  FontSize="11"
+                  Foreground="{DynamicResource Muted}"
+                  Margin="0,6,0,8"
+                  TextTrimming="CharacterEllipsis"/>
+                <DockPanel Grid.Row="2">
+                  <TextBlock Text="{Binding Kind}" FontSize="10" Foreground="{DynamicResource Muted}"/>
+                  <TextBlock
+                    Text="{ui:Loc Source={Binding StateLabel}}"
+                    HorizontalAlignment="Right"
+                    FontSize="9"
+                    FontWeight="Bold">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding State}" Value="Connected">
+                            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="Faulted">
+                            <Setter Property="Foreground" Value="{DynamicResource Fault}"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding State}" Value="Connecting">
+                            <Setter Property="Foreground" Value="{DynamicResource Warning}"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding IsOccupied}" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource Error}"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
+                </DockPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Grid.Row="2">
+          <Border Background="{DynamicResource InputSurface}" CornerRadius="5" Padding="12" Margin="0,12,0,12">
+            <StackPanel>
+              <TextBlock Text="{ui:Loc Key=WorkspaceTotalHeading}" FontSize="10" Foreground="{DynamicResource Muted}"/>
+              <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="↗ TX" Foreground="{DynamicResource TxColor}" FontSize="10"/>
+                  <TextBlock Text="{Binding TotalTx}" FontFamily="Consolas" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="↙ RX" Foreground="{DynamicResource Accent}" FontSize="10"/>
+                  <TextBlock Text="{Binding TotalRx}" FontFamily="Consolas" Margin="0,4,0,0"/>
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
+    <Grid Grid.Column="2" Margin="18,16,18,12">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="5"/>
+        <RowDefinition x:Name="LowerPaneRow" Height="280" MinHeight="260"/>
+      </Grid.RowDefinitions>
+      <Grid Margin="0,0,0,14">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="{ui:Loc Key=UiEndpointManager}" FontSize="23" FontWeight="SemiBold"/>
+          <TextBlock
+            Text="{ui:Loc Source={Binding Selected.Detail, TargetNullValue=添加一个端点以开始调试}}"
+            Foreground="{DynamicResource Muted}"
+            Margin="0,5,0,0"
+            TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Command="{Binding ConnectCommand}" Margin="12,0,8,0">
+            <Button.Style>
+              <Style TargetType="Button" BasedOn="{StaticResource Primary}">
+                <Setter Property="Content" Value="{ui:Loc Key=UiOpen}"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding Selected.Kind}" Value="TcpClient">
+                    <Setter Property="Content" Value="{ui:Loc Key=UiConnect}"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Selected.Kind}" Value="TcpServer">
+                    <Setter Property="Content" Value="{ui:Loc Key=UiListen}"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Button.Style>
+          </Button>
+          <Button Content="{ui:Loc Key=UiClose}" Command="{Binding DisconnectCommand}"/>
+        </StackPanel>
+      </Grid>
+      <Grid Grid.Row="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="270" MinWidth="240"/>
+          <ColumnDefinition Width="12"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border
+          Background="{DynamicResource Surface}"
+          BorderBrush="{DynamicResource Outline}"
+          BorderThickness="1"
+          CornerRadius="6">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="16">
+              <TextBlock
+                Text="{ui:Loc Key=EndpointSettingsHeading}"
+                Style="{StaticResource EndpointSectionHeading}"
+                Margin="0,0,0,6"/>
+              <StackPanel IsEnabled="{Binding Selected.CanEdit, FallbackValue=False}">
+                <TextBlock Text="{ui:Loc Key=UiEndpointName}" Style="{StaticResource MutedLabel}"/>
+                <TextBox
+                  x:Name="EndpointNameEditor"
+                  Text="{Binding Selected.Name, UpdateSourceTrigger=PropertyChanged}"
+                  Tag="{Binding Selected.DefaultName}"/>
+                <TextBlock Text="{ui:Loc Key=UiTransport}" Style="{StaticResource MutedLabel}"/>
+                <ComboBox ItemsSource="{Binding TransportKinds}" SelectedItem="{Binding Selected.Kind}"/>
+                <StackPanel
+                  x:Name="RemoteSettings"
+                  Visibility="{Binding Selected.IsTcpClient, Converter={StaticResource BoolVis}}">
+                  <TextBlock Text="{ui:Loc Key=UiRemote}" Style="{StaticResource MutedLabel}"/>
+                  <TextBlock Text="IP" Style="{StaticResource MutedLabel}"/>
+                  <ComboBox
+                    x:Name="RemoteIpPicker"
+                    Style="{StaticResource IpAddressPicker}"
+                    ItemsSource="{x:Static ui:IpAddressPresets.Remote}"
+                    Text="{Binding Selected.Host, UpdateSourceTrigger=PropertyChanged}"/>
+                  <TextBlock Text="{ui:Loc Key=UiPort}" Style="{StaticResource MutedLabel}"/>
+                  <TextBox
+                    Text="{Binding Selected.Port, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Visibility="{Binding Selected.IsLocal, Converter={StaticResource BoolVis}}">
+                  <TextBlock Text="{ui:Loc Key=UiBind}" Style="{StaticResource MutedLabel}"/>
+                  <TextBlock Text="IP" Style="{StaticResource MutedLabel}"/>
+                  <ComboBox
+                    x:Name="BindIpPicker"
+                    Style="{StaticResource IpAddressPicker}"
+                    ItemsSource="{x:Static ui:IpAddressPresets.Bind}"
+                    Text="{Binding Selected.LocalAddress, UpdateSourceTrigger=PropertyChanged}"/>
+                  <TextBlock Text="{ui:Loc Key=UiPort}" Style="{StaticResource MutedLabel}"/>
+                  <TextBox
+                    Text="{Binding Selected.LocalPort, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Visibility="{Binding Selected.IsSerial, Converter={StaticResource BoolVis}}">
+                  <TextBlock Text="{ui:Loc Key=UiSerialPort}" Style="{StaticResource MutedLabel}"/>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox
+                      IsEditable="True"
+                      IsTextSearchEnabled="False"
+                      ItemsSource="{Binding SerialPorts}"
+                      Text="{Binding Selected.SerialPort, UpdateSourceTrigger=PropertyChanged}"
+                      Tag="{ui:Loc Key=UiEnterOrSelectAPort}"
+                      ToolTip="{ui:Loc Key=UiEnterAPortNameOrSelectA}"/>
+                    <Button
+                      Grid.Column="1"
+                      Content="↻"
+                      Command="{Binding RefreshSerialPortsCommand}"
+                      ToolTip="{ui:Loc Key=UiRefreshSerialPorts}"
+                      Margin="6,0,0,0"
+                      Padding="9,5"/>
+                  </Grid>
+                  <TextBlock Text="{ui:Loc Key=UiBaudRate}" Style="{StaticResource MutedLabel}"/>
+                  <TextBox
+                    Text="{Binding Selected.BaudRate, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}"/>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition/>
+                      <ColumnDefinition Width="12"/>
+                      <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                      <TextBlock Text="{ui:Loc Key=UiDataBits}" Style="{StaticResource MutedLabel}"/>
+                      <ComboBox ItemsSource="{Binding DataBitsOptions}" SelectedItem="{Binding Selected.DataBits}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Text="{ui:Loc Key=UiParity}" Style="{StaticResource MutedLabel}"/>
+                      <ComboBox ItemsSource="{Binding Parities}" SelectedItem="{Binding Selected.Parity}"/>
+                    </StackPanel>
+                  </Grid>
+                  <TextBlock Text="{ui:Loc Key=UiStopBits}" Style="{StaticResource MutedLabel}"/>
+                  <ComboBox ItemsSource="{Binding StopBitsOptions}" SelectedItem="{Binding Selected.StopBits}"/>
+                  <TextBlock Text="{ui:Loc Key=UiFlowControl}" Style="{StaticResource MutedLabel}"/>
+                  <ComboBox ItemsSource="{Binding Handshakes}" SelectedItem="{Binding Selected.Handshake}"/>
+                </StackPanel>
+              </StackPanel>
+              <Border
+                BorderBrush="{DynamicResource Outline}"
+                BorderThickness="0,1,0,0"
+                Margin="0,20,0,0"
+                Padding="0,14,0,0">
+                <StackPanel>
+                  <TextBlock Text="{ui:Loc Key=UiEndpointTraffic}" Style="{StaticResource EndpointSectionHeading}"/>
+                  <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition/>
+                      <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                      <TextBlock Text="TX" Foreground="{DynamicResource TxColor}" FontSize="10"/>
+                      <TextBlock Text="{Binding Selected.Tx}" FontFamily="Consolas" FontSize="17" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                      <TextBlock Text="RX" Foreground="{DynamicResource Accent}" FontSize="10"/>
+                      <TextBlock Text="{Binding Selected.Rx}" FontFamily="Consolas" FontSize="17" Margin="0,5,0,0"/>
+                    </StackPanel>
+                  </Grid>
+                  <TextBlock
+                    Text="{Binding Selected.Operations}"
+                    FontFamily="Consolas"
+                    Foreground="{DynamicResource Muted}"
+                    FontSize="10"
+                    Margin="0,10,0,0"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+        <Border Grid.Column="2" BorderBrush="{DynamicResource Outline}" BorderThickness="1" CornerRadius="6">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <DockPanel Background="{DynamicResource Surface}" Margin="0">
+              <TextBlock
+                Text="{ui:Loc Key=TrafficMonitorHeading}"
+                Style="{StaticResource EndpointSectionHeading}"
+                Margin="14,12"/>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,8,6">
+                <CheckBox Content="HEX" IsChecked="{Binding HexView}"/>
+                <Button Content="{ui:Loc Key=UiClear}" Command="{Binding ClearCommand}" Padding="9,4" Margin="6,0"/>
+                <Button
+                  Content="{ui:Loc Key=UiExport}"
+                  Command="{Binding ExportCommand}"
+                  Padding="9,4"
+                  ToolTip="{ui:Loc Key=UiExportRetainedRecordsMatchingTheCurrentFilter}"/>
+              </StackPanel>
+            </DockPanel>
+            <DataGrid
+              x:Name="TrafficGrid"
+              Sorting="TrafficGridSorting"
+              Grid.Row="1"
+              ItemsSource="{Binding TrafficView}"
+              SelectedItem="{Binding SelectedTraffic}"
+              FontFamily="Consolas"
+              FontSize="12">
+              <DataGrid.Columns>
+                <DataGridTextColumn
+                  Header="{ui:Loc Key=TimeHeading}"
+                  HeaderTemplate="{StaticResource TrafficTimeHeader}"
+                  SortMemberPath="Timestamp"
+                  Binding="{Binding Time}"
+                  Width="108"/>
+                <DataGridTextColumn
+                  Header="I/O"
+                  HeaderStyle="{StaticResource TrafficDirectionHeader}"
+                  CanUserSort="False"
+                  Binding="{Binding Direction}"
+                  Width="48">
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Direction}" Value="TX">
+                          <Setter Property="Foreground" Value="{DynamicResource TxColor}"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn
+                  Header="{ui:Loc Key=ManagedEndpointHeading}"
+                  CanUserSort="False"
+                  Binding="{Binding Connection}"
+                  Width="140">
+                  <DataGridTextColumn.HeaderStyle>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource TrafficConnectionHeader}">
+                      <Style.Triggers>
+                        <DataTrigger
+                          Binding="{Binding DataContext.OnlySelected, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                          Value="True">
+                          <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </DataGridTextColumn.HeaderStyle>
+                  <DataGridTextColumn.CellStyle>
+                    <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                      <Setter Property="ToolTip" Value="{Binding ConnectionAddress}"/>
+                    </Style>
+                  </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="{ui:Loc Key=PeerHeading}" CanUserSort="False" Width="160">
+                  <DataGridTemplateColumn.HeaderStyle>
+                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource TrafficEndpointHeader}">
+                      <Setter Property="ToolTip" Value="{ui:Loc Key=UiTrafficPeerHint}"/>
+                      <Style.Triggers>
+                        <DataTrigger
+                          Binding="{Binding DataContext.OnlySelectedPeer, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                          Value="True">
+                          <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </DataGridTemplateColumn.HeaderStyle>
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <TextBlock
+                        Text="{Binding PeerName}"
+                        ToolTip="{Binding Endpoint}"
+                        TextTrimming="CharacterEllipsis"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn
+                  Header="{ui:Loc Key=BytesHeading}"
+                  CanUserSort="False"
+                  Binding="{Binding Length}"
+                  Width="65"/>
+                <DataGridTextColumn
+                  Header="{ui:Loc Key=PayloadHeading}"
+                  HeaderStyle="{StaticResource TrafficDataHeader}"
+                  CanUserSort="False"
+                  Binding="{Binding Preview}"
+                  Width="*"
+                  MinWidth="160"/>
+              </DataGrid.Columns>
+            </DataGrid>
+            <DockPanel Grid.Row="2" Margin="12,5">
+              <CheckBox
+                DockPanel.Dock="Right"
+                Content="{ui:Loc Key=UiFollow}"
+                IsChecked="{Binding FollowTail}"
+                HorizontalAlignment="Right"
+                FontSize="10"/>
+              <TextBlock
+                Text="{ui:Loc Source={Binding BufferStatus}}"
+                FontSize="10"
+                Foreground="{DynamicResource Muted}"/>
+            </DockPanel>
+          </Grid>
+        </Border>
+      </Grid>
+      <GridSplitter x:Name="LowerPaneSplitter" Grid.Row="2" HorizontalAlignment="Stretch" Margin="0,2,0,1"/>
+      <TabControl x:Name="LowerPane" Margin="0,8,0,0" Grid.Row="3" Tag="False">
+        <TabControl.Template>
+          <ControlTemplate TargetType="TabControl">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <DockPanel Background="{TemplateBinding Background}">
+                <Button
+                  x:Name="PaneToggle"
+                  DockPanel.Dock="Right"
+                  Content="▼"
+                  ToolTip="{ui:Loc Key=UiCollapseLowerPane}"
+                  Click="ToggleLowerPaneClick"
+                  Padding="9,4"
+                  Margin="4,0,0,2"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  VerticalAlignment="Center"/>
+                <TabPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1"/>
+              </DockPanel>
+              <Border
+                x:Name="PaneContent"
+                Grid.Row="1"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}">
+                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"/>
+              </Border>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="Tag" Value="True">
+                <Setter TargetName="PaneContent" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="PaneToggle" Property="Content" Value="▲"/>
+                <Setter TargetName="PaneToggle" Property="ToolTip" Value="{ui:Loc Key=UiExpandLowerPane}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </TabControl.Template>
+        <TabItem Header="{ui:Loc Key=UiEventLog}">
+          <DataGrid ItemsSource="{Binding Logs}" FontSize="12">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="{ui:Loc Key=TimeHeading}" Binding="{Binding Time}" Width="105"/>
+              <DataGridTextColumn Header="{ui:Loc Key=LevelHeading}" Binding="{Binding Level}" Width="65"/>
+              <DataGridTextColumn Header="{ui:Loc Key=SourceHeading}" Binding="{Binding Connection}" Width="150"/>
+              <DataGridTextColumn
+                Header="{ui:Loc Key=MessageHeading}"
+                Binding="{ui:Loc Source={Binding Message}}"
+                Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </TabItem>
+        <TabItem Header="{ui:Loc Key=UiSend}">
+          <Border
+            Margin="0"
+            BorderBrush="{DynamicResource Outline}"
+            BorderThickness="0"
+            CornerRadius="6"
+            IsEnabled="{Binding CanUseSendArea}">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <Menu
+                x:Name="SendFormatMenu"
+                Grid.Row="0"
+                Background="Transparent"
+                HorizontalAlignment="Left"
+                Margin="12,6,0,0">
+                <MenuItem
+                  Header="{ui:Loc Source={Binding SendModeLabel}}"
+                  InputGestureText="▾"
+                  ToolTip="{ui:Loc Key=UiSendFormatHint}">
+                  <MenuItem Header="HEX" Tag="HEX" IsChecked="{Binding SendHex, Mode=OneWay}" Click="SendFormatClick"/>
+                  <MenuItem
+                    Header="{ui:Loc Key=UiTextInput}"
+                    InputGestureText="›"
+                    IsChecked="{Binding IsTextInput, Mode=OneWay}">
+                    <MenuItem Header="UTF-8" Tag="UTF-8" Style="{StaticResource SendEncodingItem}"/>
+                    <MenuItem Header="ASCII" Tag="ASCII" Style="{StaticResource SendEncodingItem}"/>
+                    <MenuItem Header="UTF-16 LE" Tag="UTF-16 LE" Style="{StaticResource SendEncodingItem}"/>
+                    <MenuItem Header="UTF-16 BE" Tag="UTF-16 BE" Style="{StaticResource SendEncodingItem}"/>
+                    <MenuItem Header="GB18030" Tag="GB18030" Style="{StaticResource SendEncodingItem}"/>
+                  </MenuItem>
+                </MenuItem>
+              </Menu>
+              <Border
+                Grid.Row="1"
+                BorderBrush="{DynamicResource Outline}"
+                BorderThickness="0"
+                Background="{DynamicResource Surface}"
+                Padding="12,6,12,10">
+                <TextBox
+                  Text="{Binding SendText, UpdateSourceTrigger=PropertyChanged}"
+                  AcceptsReturn="True"
+                  VerticalScrollBarVisibility="Auto"
+                  VerticalContentAlignment="Top"
+                  TextWrapping="Wrap"
+                  FontFamily="Consolas"
+                  MinHeight="65"/>
+              </Border>
+              <Grid Grid.Row="2" Margin="12,0,12,8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <WrapPanel x:Name="SendEndpointSelectors" Margin="0,0,10,0">
+                  <StackPanel Margin="0,0,12,4" Width="200">
+                    <TextBlock
+                      Text="{ui:Loc Key=UiSender}"
+                      Foreground="{DynamicResource Muted}"
+                      FontSize="10"
+                      Margin="0,0,0,4"/>
+                    <ComboBox
+                      x:Name="SendEndpointPicker"
+                      Style="{StaticResource UpwardComboBox}"
+                      ItemsSource="{Binding SendSourceOptions}"
+                      SelectedItem="{Binding SelectedSendSource}"
+                      ToolTip="{ui:Loc Key=UiSendEndpointHint}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                              <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="{Binding Endpoint.DisplayName}"/>
+                                <Setter Property="ToolTip" Value="{Binding Endpoint.Endpoint}"/>
+                                <Style.Triggers>
+                                  <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                    <Setter Property="Text" Value="{ui:Loc Key=UiCurrentSendEndpoint}"/>
+                                    <Setter
+                                      Property="ToolTip"
+                                      Value="{Binding DataContext.Selected.Endpoint, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
+                                  </DataTrigger>
+                                </Style.Triggers>
+                              </Style>
+                            </TextBlock.Style>
+                          </TextBlock>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                  </StackPanel>
+                  <StackPanel Margin="0,0,0,4" Width="230">
+                    <TextBlock
+                      Text="{ui:Loc Key=UiReceiver}"
+                      Foreground="{DynamicResource Muted}"
+                      FontSize="10"
+                      Margin="0,0,0,4"/>
+                    <ComboBox
+                      x:Name="ReceiverPicker"
+                      Style="{StaticResource UpwardComboBox}"
+                      ItemsSource="{Binding ReceiverOptions}"
+                      TextSearch.TextPath="Name"
+                      Text="{Binding ReceiverText, UpdateSourceTrigger=PropertyChanged}"
+                      SelectionChanged="ReceiverSelectionChanged"
+                      IsEditable="True"
+                      IsTextSearchEnabled="False"
+                      IsEnabled="{Binding CanChooseReceiver}"
+                      ToolTip="{Binding ReceiverAddress}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock
+                            Text="{Binding Name}"
+                            ToolTip="{Binding Address}"
+                            TextTrimming="CharacterEllipsis"/>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                  </StackPanel>
+                </WrapPanel>
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                  <TextBlock
+                    Text="{ui:Loc Source={Binding SendSize}}"
+                    FontSize="10"
+                    Foreground="{DynamicResource Muted}"
+                    VerticalAlignment="Center"
+                    Margin="0,0,16,4"/>
+                  <StackPanel
+                    x:Name="SendLineEnding"
+                    Orientation="Horizontal"
+                    Margin="0,0,16,4"
+                    Visibility="{Binding IsTextInput, Converter={StaticResource BoolVis}}">
+                    <TextBlock
+                      Text="{ui:Loc Key=UiLineEnding}"
+                      Foreground="{DynamicResource Muted}"
+                      FontSize="11"
+                      Margin="8,0"/>
+                    <ComboBox
+                      Width="76"
+                      ItemsSource="{Binding LineEndings}"
+                      SelectedItem="{Binding LineEnding}"
+                      ToolTip="{ui:Loc Key=UiLineEndingAppliesToTextInputOnly}"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
+                    <TextBox
+                      Text="{Binding IntervalMs, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}"
+                      Width="64"
+                      ToolTip="{ui:Loc Key=UiIntervalInMilliseconds503600000}"/>
+                    <TextBlock Text="ms" Foreground="{DynamicResource Muted}" Margin="5,0,10,0"/>
+                    <Button
+                      Content="{ui:Loc Source={Binding PeriodicLabel}}"
+                      Command="{Binding PeriodicCommand}"
+                      Padding="9,5"/>
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Button
+                      Content="{ui:Loc Key=UiSendL065}"
+                      Command="{Binding SendCommand}"
+                      Style="{StaticResource Primary}"
+                      ToolTip="Ctrl+Enter"/>
+                  </StackPanel>
+                </WrapPanel>
+              </Grid>
+            </Grid>
+          </Border>
+        </TabItem>
+        <TabItem Header="{ui:Loc Key=UiPacketDetails}">
+          <TextBox
+            Text="{Binding SelectedTraffic.Detail, Mode=OneWay}"
+            IsReadOnly="True"
+            AcceptsReturn="True"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto"
+            FontFamily="Consolas"
+            VerticalContentAlignment="Top"
+            BorderThickness="0"/>
+        </TabItem>
+        <TabItem Header="{ui:Loc Key=UiGuide}">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <TextBlock
+              Margin="16,12"
+              Foreground="{DynamicResource Muted}"
+              TextWrapping="Wrap"
+              LineHeight="23"
+              Text="{ui:Loc Key=UiEndpointGuide}"/>
+          </ScrollViewer>
+        </TabItem>
+      </TabControl>
+    </Grid>
+    <Popup
+      x:Name="TrafficFilterPopup"
+      Placement="Top"
+      StaysOpen="False"
+      AllowsTransparency="True"
+      PopupAnimation="Fade">
+      <Border
+        Background="{DynamicResource Raised}"
+        BorderBrush="{DynamicResource Outline}"
+        BorderThickness="1"
+        CornerRadius="6"
+        Padding="12"
+        MinWidth="210"
+        MaxWidth="360"
+        PreviewKeyDown="TrafficFilterKeyDown">
+        <StackPanel>
+          <TextBlock
+            Text="{ui:Loc Source={Binding Title, StringFormat={}{0}筛选}}"
+            FontWeight="SemiBold"
+            Margin="0,0,0,10"/>
+          <CheckBox
+            Content="{ui:Loc Key=UiSelectedEndpoint}"
+            IsChecked="{Binding DataContext.OnlySelected, ElementName=RootView}"
+            Margin="0,0,0,10">
+            <CheckBox.Style>
+              <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger
+                    Binding="{Binding PlacementTarget.Tag, ElementName=TrafficFilterPopup}"
+                    Value="Connection">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </CheckBox.Style>
+          </CheckBox>
+          <CheckBox
+            x:Name="CurrentPeerFilter"
+            Content="{ui:Loc Key=UiSelectedPeer}"
+            IsChecked="{Binding DataContext.OnlySelectedPeer, ElementName=RootView}"
+            ToolTip="{ui:Loc Key=UiSelectedPeerHint}"
+            Margin="0,0,0,10">
+            <CheckBox.Style>
+              <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding PlacementTarget.Tag, ElementName=TrafficFilterPopup}" Value="Endpoint">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </CheckBox.Style>
+          </CheckBox>
+          <StackPanel x:Name="TrafficFilterOptions">
+            <StackPanel.Style>
+              <Style TargetType="StackPanel">
+                <Style.Triggers>
+                  <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                      <Condition Binding="{Binding DataContext.OnlySelected, ElementName=RootView}" Value="True"/>
+                      <Condition
+                        Binding="{Binding PlacementTarget.Tag, ElementName=TrafficFilterPopup}"
+                        Value="Connection"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="IsEnabled" Value="False"/>
+                  </MultiDataTrigger>
+                  <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                      <Condition Binding="{Binding DataContext.OnlySelectedPeer, ElementName=RootView}" Value="True"/>
+                      <Condition
+                        Binding="{Binding PlacementTarget.Tag, ElementName=TrafficFilterPopup}"
+                        Value="Endpoint"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="IsEnabled" Value="False"/>
+                  </MultiDataTrigger>
+                </Style.Triggers>
+              </Style>
+            </StackPanel.Style>
+            <UniformGrid Columns="2" Margin="0,0,0,8">
+              <Button
+                Content="{ui:Loc Key=UiSelectAll}"
+                Click="TrafficFilterSelectAllClick"
+                Padding="8,4"
+                Margin="0,0,6,0"/>
+              <Button Content="{ui:Loc Key=UiClearSelection}" Click="TrafficFilterClearClick" Padding="8,4"/>
+            </UniformGrid>
+            <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding Options}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <CheckBox
+                      Content="{Binding Label}"
+                      IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Margin="0,5"
+                      ToolTip="{Binding ToolTip}"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Popup>
+    <Popup
+      x:Name="TrafficDataPopup"
+      Placement="Top"
+      StaysOpen="False"
+      AllowsTransparency="True"
+      PopupAnimation="Fade"
+      DataContext="{Binding DataContext, ElementName=RootView}">
+      <Border
+        Background="{DynamicResource Raised}"
+        BorderBrush="{DynamicResource Outline}"
+        BorderThickness="1"
+        CornerRadius="6"
+        Padding="12"
+        Width="320"
+        PreviewKeyDown="TrafficFilterKeyDown">
+        <StackPanel>
+          <TextBlock Text="{ui:Loc Key=UiTrafficFilter}" FontWeight="SemiBold" Margin="0,0,0,10"/>
+          <TextBox
+            x:Name="TrafficSearchInput"
+            Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"
+            ToolTip="{ui:Loc Key=UiFilterByEndpointNamePeerAddress}"
+            AutomationProperties.Name="{ui:Loc Key=UiTrafficFilter}"/>
+        </StackPanel>
+      </Border>
+    </Popup>
+  </Grid>
+</UserControl>

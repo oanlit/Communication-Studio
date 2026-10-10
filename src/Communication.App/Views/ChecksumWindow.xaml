@@ -1,0 +1,97 @@
+﻿<Window
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:ui="clr-namespace:Communication.App.Presentation"
+  xmlns:views="clr-namespace:Communication.App.Views"
+  xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+  x:Class="Communication.App.Views.ChecksumWindow"
+  x:Name="ToolWindow"
+  Title="{ui:Loc Key=UiChecksums}"
+  Width="540"
+  Height="660"
+  MinWidth="480"
+  MinHeight="580"
+  WindowStartupLocation="CenterScreen"
+  WindowStyle="None"
+  ResizeMode="CanResize"
+  Topmost="True"
+  ShowInTaskbar="True"
+  Style="{StaticResource {x:Type Window}}">
+  <shell:WindowChrome.WindowChrome>
+    <shell:WindowChrome
+      CaptionHeight="42"
+      ResizeBorderThickness="6"
+      GlassFrameThickness="0"
+      CornerRadius="0"
+      UseAeroCaptionButtons="False"/>
+  </shell:WindowChrome.WindowChrome>
+  <Border BorderBrush="{DynamicResource Outline}" BorderThickness="1">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="42"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <Grid Background="{DynamicResource Surface}">
+        <TextBlock Text="{ui:Loc Key=UiChecksums}" Margin="16,0" FontWeight="SemiBold"/>
+        <StackPanel
+          Orientation="Horizontal"
+          HorizontalAlignment="Right"
+          shell:WindowChrome.IsHitTestVisibleInChrome="True">
+          <ToggleButton
+            x:Name="PinButton"
+            Width="42"
+            IsChecked="{Binding Topmost, ElementName=ToolWindow, Mode=TwoWay}"
+            ToolTip="{ui:Loc Key=UiPinToolWindow}">
+            <ToggleButton.Style>
+              <Style TargetType="ToggleButton">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                      <Border Background="{TemplateBinding Background}">
+                        <Path
+                          Data="M 5 2 L 13 2 M 7 2 L 7 8 L 4 11 L 14 11 L 11 8 L 11 2 M 9 11 L 9 17"
+                          Stroke="{TemplateBinding Foreground}"
+                          StrokeThickness="1.5"
+                          StrokeStartLineCap="Round"
+                          StrokeEndLineCap="Round"
+                          Width="18"
+                          Height="18"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                      </Border>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                  <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                    <Setter Property="Background" Value="{DynamicResource ActiveSurface}"/>
+                  </Trigger>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource HoverSurface}"/>
+                  </Trigger>
+                </Style.Triggers>
+              </Style>
+            </ToggleButton.Style>
+          </ToggleButton>
+          <Button
+            x:Name="MinimizeButton"
+            Content="—"
+            Style="{StaticResource CaptionButton}"
+            Click="MinimizeClick"
+            ToolTip="{ui:Loc Key=UiMinimize}"/>
+          <Button
+            Content="✕"
+            Style="{StaticResource CloseCaptionButton}"
+            Click="CloseClick"
+            ToolTip="{ui:Loc Key=UiClose}"/>
+        </StackPanel>
+      </Grid>
+      <views:ChecksumView Grid.Row="1" DataContext="{Binding Checksum}"/>
+    </Grid>
+  </Border>
+</Window>

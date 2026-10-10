@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>CommunicationStudio</AssemblyName>
+    <Title>Communication Studio</Title>
+    <Product>Communication Studio</Product>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Communication.Transports/Communication.Transports.csproj"/>
+    <EmbeddedResource Include="Localization/catalog.json"/>
+    <Resource Include="Assets/AppIcon.ico"/>
+    <Resource Include="Assets/AppIcon.png"/>
+  </ItemGroup>
+</Project>
